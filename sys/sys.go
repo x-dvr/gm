@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -28,6 +29,31 @@ func PathForVersion(version string) (string, error) {
 		return "", fmt.Errorf("get home dir of user: %w", err)
 	}
 	return filepath.Join(homedir, gmDir, versions, version), nil
+}
+
+func ListInstalledVersions() ([]string, error) {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("get home dir of user: %w", err)
+	}
+
+	versionsPath := filepath.Join(homedir, gmDir, versions)
+
+	entries, err := os.ReadDir(versionsPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		}
+		return nil, fmt.Errorf("read versions directory: %w", err)
+	}
+
+	var installed []string
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "go") {
+			installed = append(installed, entry.Name())
+		}
+	}
+	return installed, nil
 }
 
 func SetAsCurrent(version string) error {
@@ -52,6 +78,24 @@ func SetAsCurrent(version string) error {
 	}
 
 	return os.Symlink(versionPath, currentPath)
+}
+
+func GetCurrentVersion() (string, error) {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("get home dir of user: %w", err)
+	}
+
+	currentPath := filepath.Join(homedir, gmDir, versions, current)
+	target, err := os.Readlink(currentPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", fmt.Errorf("read current version symlink: %w", err)
+	}
+
+	return filepath.Base(target), nil
 }
 
 func SetGoEnvs() error {
