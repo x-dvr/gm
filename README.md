@@ -10,7 +10,7 @@ A simple Go version manager that can help you install and manage multiple versio
 ## Installation
 
 ```bash
-go install github.com/x-dvr/gm@latest
+# TODO
 ```
 
 ## Usage
