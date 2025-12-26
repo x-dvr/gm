@@ -1,0 +1,2 @@
+# gm
+Golang version manager
