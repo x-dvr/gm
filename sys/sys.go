@@ -69,21 +69,9 @@ func SetGoEnvs() error {
 	goRoot := filepath.Join(homedir, gmDir, versions, current)
 	goSDKBin := filepath.Join(goRoot, "bin")
 
-	err = os.Setenv("GOPATH", goPath)
-	if err != nil {
-		return fmt.Errorf("set GOPATH: %w", err)
-	}
-	err = os.Setenv("GOBIN", goBin)
-	if err != nil {
-		return fmt.Errorf("set GOBIN: %w", err)
-	}
-	err = os.Setenv("GOROOT", goRoot)
-	if err != nil {
-		return fmt.Errorf("set GOROOT: %w", err)
-	}
-	err = os.Setenv("PATH", fmt.Sprintf("%s:%s:%s", path, goSDKBin, goBin))
-	if err != nil {
-		return fmt.Errorf("set PATH: %w", err)
-	}
+	fmt.Printf("export GOPATH=%s\n", goPath)
+	fmt.Printf("export GOBIN=%s\n", goBin)
+	fmt.Printf("export GOROOT=%s\n", goRoot)
+	fmt.Printf("export PATH=\"%s:$PATH\"\n", goSDKBin+":"+goBin)
 	return nil
 }
