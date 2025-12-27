@@ -14,14 +14,12 @@ jobs:
           fetch-depth: 0 # Full history for changelog
 
       - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.25"
+        uses: actions/setup-go@v5
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
-          version: latest
+          version: "~> v2"
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
