@@ -1,3 +1,6 @@
+/*
+Copyright © 2025 DENIS RODIN <denis.rodin@proton.me>
+*/
 package upgrade
 
 import (
@@ -19,6 +22,7 @@ import (
 var (
 	ErrNoBuildInfo          = errors.New("build info is not available")
 	ErrPlatformNotSupported = errors.New("platform not supported")
+	ErrUnsupportedArchive   = errors.New("unsupported archive format")
 )
 
 type Release struct {
@@ -49,7 +53,7 @@ type Asset struct {
 }
 
 func (a *Asset) Download() (string, error) {
-	f, err := os.CreateTemp(os.TempDir(), "gm-up-")
+	f, err := os.CreateTemp(os.TempDir(), "gm-up-*."+a.Name)
 	if err != nil {
 		return "", fmt.Errorf("create temporary file: %w", err)
 	}
@@ -101,6 +105,17 @@ func GetUpdate(ctx context.Context) (*Release, error) {
 	}
 
 	return prepare(releases[0]), nil
+}
+
+func Extract(src, dest string) error {
+	switch {
+	case strings.HasSuffix(src, ".zip"):
+		return extractZip(src, dest)
+	case strings.HasSuffix(src, ".tar.gz"):
+		return extractTarGz(src, dest)
+	default:
+		return ErrUnsupportedArchive
+	}
 }
 
 func prepare(ghr *github.RepositoryRelease) *Release {

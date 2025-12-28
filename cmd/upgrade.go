@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -29,7 +30,7 @@ var upgradeCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("determine path of executable: %w", err)
 		}
-		fmt.Printf("upgrade called %s\n", exePath)
+		installPath := filepath.Dir(exePath)
 
 		latest, err := upgrade.GetUpdate(ctx)
 		if err != nil {
@@ -37,15 +38,10 @@ var upgradeCmd = &cobra.Command{
 		}
 		if latest == nil {
 			fmt.Println("No updates available")
+			return nil
 		}
 
-		fmt.Printf("%s %s\n\n", runtime.GOOS, runtime.GOARCH)
-		fmt.Println("Latest version available:", latest.Version)
-		fmt.Println("Assets:")
-		for _, a := range latest.Assets {
-			fmt.Printf("%s - %s\n", a.Name, a.URL)
-		}
-
+		fmt.Println("Update available:", latest.Version)
 		asset, err := latest.FindAsset(runtime.GOOS, runtime.GOARCH)
 		if err != nil {
 			if errors.Is(err, upgrade.ErrPlatformNotSupported) {
@@ -54,8 +50,24 @@ var upgradeCmd = &cobra.Command{
 			}
 			return err
 		}
-
 		fmt.Println("Downloading", asset.URL)
+		downloadPath, err := asset.Download()
+		if err != nil {
+			return err
+		}
+		if err := os.Rename(exePath, exePath+".bak"); err != nil {
+			return fmt.Errorf("rename executable: %w", err)
+		}
+
+		if err = upgrade.Extract(downloadPath, installPath); err != nil {
+			return err
+		}
+
+		fmt.Println("Updated", exePath)
+
+		if err = os.Remove(downloadPath); err != nil {
+			return err
+		}
 
 		return nil
 	},
