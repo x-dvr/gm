@@ -10,7 +10,7 @@ A simple Go version manager that can help you install and manage multiple versio
 ## Installation
 
 ```bash
-# TODO
+curl -fsSL https://raw.githubusercontent.com/x-dvr/gm/master/install.sh | bash
 ```
 
 ## Usage

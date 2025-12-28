@@ -36,7 +36,7 @@ fi
 echo "📌 Latest version: $VERSION"
 
 # Download
-ARCHIVE_NAME="${BINARY_NAME}_${OS}_${ARCH}.${EXT}"
+ARCHIVE_NAME="${BINARY_NAME}_${OS}.${ARCH}.${EXT}"
 DOWNLOAD_URL="https://github.com/$REPO/releases/download/$VERSION/$ARCHIVE_NAME"
 
 echo "⬇️  Downloading from: $DOWNLOAD_URL"
@@ -48,12 +48,9 @@ curl -L -o "$TMP_DIR/$ARCHIVE_NAME" "$DOWNLOAD_URL"
 
 # Extract
 echo "📂 Extracting archive..."
+ls -la "$TMP_DIR"
 cd "$TMP_DIR"
-if [ "$EXT" = "zip" ]; then
-    unzip -q "$ARCHIVE_NAME"
-else
-    tar -xzf "$ARCHIVE_NAME"
-fi
+tar -xzf "$ARCHIVE_NAME"
 
 # Install
 mkdir -p "$INSTALL_DIR"
