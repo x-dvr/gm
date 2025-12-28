@@ -31,7 +31,7 @@ func extractZip(src, dest string) error {
 			return err
 		}
 
-		outFile, err := os.Create(fpath)
+		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 		if err != nil {
 			return err
 		}
@@ -85,8 +85,10 @@ func extractTarGz(src, dest string) error {
 				return err
 			}
 		case tar.TypeReg:
+			fi := header.FileInfo()
+			mode := fi.Mode()
 			os.MkdirAll(filepath.Dir(target), 0755)
-			outFile, err := os.Create(target)
+			outFile, err := os.OpenFile(target, os.O_RDWR|os.O_CREATE|os.O_TRUNC, mode.Perm())
 			if err != nil {
 				return err
 			}

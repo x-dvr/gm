@@ -62,7 +62,6 @@ var upgradeCmd = &cobra.Command{
 		if err = upgrade.Extract(downloadPath, installPath); err != nil {
 			return err
 		}
-
 		fmt.Println("Updated", exePath)
 
 		if err = os.Remove(downloadPath); err != nil {
