@@ -69,7 +69,11 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     # Detect shell and update appropriate profile
     SHELL_PROFILE=""
     if [ -n "$ZSH_VERSION" ]; then
-        SHELL_PROFILE="$HOME/.zshrc"
+        SHELL_PROFILE="$HOME/.zshenv"
+        # Create .zshenv if it doesn't exist
+        if [ ! -f "$SHELL_PROFILE" ]; then
+            touch "$SHELL_PROFILE"
+        fi
     elif [ -n "$BASH_VERSION" ]; then
         if [ -f "$HOME/.bashrc" ]; then
             SHELL_PROFILE="$HOME/.bashrc"
@@ -79,11 +83,16 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
     fi
 
     if [ -n "$SHELL_PROFILE" ]; then
-        echo "" >> "$SHELL_PROFILE"
-        echo "# Added by $BINARY_NAME installer" >> "$SHELL_PROFILE"
-        echo "export PATH=\"\$HOME/.gm/bin:\$PATH\"" >> "$SHELL_PROFILE"
-        echo "✅ Updated $SHELL_PROFILE"
-        echo "   Run: source $SHELL_PROFILE"
+        # Check if already added
+        if grep -q "# Added by $BINARY_NAME installer" "$SHELL_PROFILE" 2>/dev/null; then
+            echo "ℹ️  PATH already configured in $SHELL_PROFILE"
+        else
+            echo "" >> "$SHELL_PROFILE"
+            echo "# Added by $BINARY_NAME installer" >> "$SHELL_PROFILE"
+            echo "export PATH=\"\$HOME/.gm/bin:\$PATH\"" >> "$SHELL_PROFILE"
+            echo "✅ Updated $SHELL_PROFILE"
+            echo "   Run: source $SHELL_PROFILE"
+        fi
     else
         echo "⚠️  Could not detect shell profile"
         echo "   Please add manually: export PATH=\"\$HOME/.gm/bin:\$PATH\""
