@@ -30,7 +30,7 @@ archives:
   - formats: [tar.gz]
     name_template: >-
       {{ .ProjectName }}_
-      {{- .Os }}
+      {{- .Os }}.
       {{- .Arch }}
     # use zip for windows archives
     format_overrides:
