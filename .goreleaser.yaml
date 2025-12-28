@@ -23,13 +23,15 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X github.com/x-dvr/gm/cmd.version={{.Version}}
 
 archives:
   - formats: [tar.gz]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
-      {{- title .Os }}_
+      {{- title .Os }}
       {{ .Arch }}
     # use zip for windows archives
     format_overrides:
