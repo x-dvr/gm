@@ -100,7 +100,7 @@ func GetUpdate(ctx context.Context) (*Release, error) {
 	}
 
 	newVersion := releases[0].GetTagName()
-	if semver.Compare(info.Main.Version, newVersion) > 0 {
+	if semver.Compare(info.Main.Version, newVersion) >= 0 {
 		return nil, nil
 	}
 
