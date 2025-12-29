@@ -19,4 +19,3 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
-    insecure-external-code-execution: deny
