@@ -98,11 +98,11 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
 
     if [ -n "$SHELL_PROFILE" ]; then
         # Check if already added
-        if grep -q "# Added by $BINARY_NAME installer" "$SHELL_PROFILE" 2>/dev/null; then
+        if grep -q "# GM (Go version manager)" "$SHELL_PROFILE" 2>/dev/null; then
             echo "ℹ️  PATH already configured in $SHELL_PROFILE"
         else
             echo "" >> "$SHELL_PROFILE"
-            echo "# Added by $BINARY_NAME installer" >> "$SHELL_PROFILE"
+            echo "# GM (Go version manager)" >> "$SHELL_PROFILE"
 
             # Use appropriate syntax for the shell
             if [ "$DETECTED_SHELL" = "fish" ]; then

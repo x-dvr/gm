@@ -53,6 +53,16 @@ gm ls
 
 The current version will be marked with a check mark.
 
+### Upgrade gm
+
+Update gm to the latest version:
+
+```bash
+gm upgrade
+# or
+gm up
+```
+
 ### Set Environment Variables
 
 Configure your shell to use the current Go version:
@@ -61,7 +71,7 @@ Configure your shell to use the current Go version:
 eval $(gm env)
 ```
 
-Add this to your shell profile (`.bashrc`, `.zshrc`, etc.) to automatically set up the environment on new shell sessions.
+Installation script adds this call to your shell profile (`.bashrc`, `.zshenv`, etc.) to automatically set up the environment on new shell sessions.
 
 ## Quick Start
 
@@ -69,7 +79,6 @@ Get started with the latest Go version in two commands:
 
 ```bash
 gm install latest
-gm use latest
 ```
 
 Don't forget to configure your shell:
@@ -86,3 +95,4 @@ eval $(gm env)
 | `gm use <version>` | - | Set a version as current |
 | `gm list` | `gm ls` | List all installed versions |
 | `gm env` | - | Output shell commands to set environment variables |
+| `gm upgrade` | `gm up` | Upgrade gm to the latest version |
