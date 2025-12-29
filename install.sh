@@ -5,6 +5,7 @@ set -e
 REPO="x-dvr/gm"
 INSTALL_DIR="${HOME}/.gm/bin"
 BINARY_NAME="gm"
+EXT="tar.gz"
 
 # Detect OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -18,8 +19,6 @@ case $ARCH in
         exit 1
         ;;
 esac
-
-EXT="tar.gz"
 
 echo "Platform detected: $OS/$ARCH"
 
@@ -48,7 +47,6 @@ curl -L -o "$TMP_DIR/$ARCHIVE_NAME" "$DOWNLOAD_URL"
 
 # Extract
 echo "📂 Extracting archive..."
-ls -la "$TMP_DIR"
 cd "$TMP_DIR"
 tar -xzf "$ARCHIVE_NAME"
 
@@ -65,19 +63,38 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
 
     # Detect shell and update appropriate profile
     SHELL_PROFILE=""
-    if [ -n "$ZSH_VERSION" ]; then
-        SHELL_PROFILE="$HOME/.zshenv"
-        # Create .zshenv if it doesn't exist
-        if [ ! -f "$SHELL_PROFILE" ]; then
-            touch "$SHELL_PROFILE"
-        fi
-    elif [ -n "$BASH_VERSION" ]; then
-        if [ -f "$HOME/.bashrc" ]; then
-            SHELL_PROFILE="$HOME/.bashrc"
-        elif [ -f "$HOME/.bash_profile" ]; then
-            SHELL_PROFILE="$HOME/.bash_profile"
-        fi
-    fi
+    DETECTED_SHELL=$(basename "$SHELL")
+
+    case "$DETECTED_SHELL" in
+        zsh)
+            SHELL_PROFILE="$HOME/.zshenv"
+            # Create .zshenv if it doesn't exist
+            if [ ! -f "$SHELL_PROFILE" ]; then
+                touch "$SHELL_PROFILE"
+            fi
+            ;;
+        bash)
+            if [ -f "$HOME/.bashrc" ]; then
+                SHELL_PROFILE="$HOME/.bashrc"
+            elif [ -f "$HOME/.bash_profile" ]; then
+                SHELL_PROFILE="$HOME/.bash_profile"
+            fi
+            ;;
+        fish)
+            SHELL_PROFILE="$HOME/.config/fish/config.fish"
+            # Create config.fish if it doesn't exist
+            mkdir -p "$HOME/.config/fish"
+            if [ ! -f "$SHELL_PROFILE" ]; then
+                touch "$SHELL_PROFILE"
+            fi
+            ;;
+        *)
+            # For other shells, try common profile files
+            if [ -f "$HOME/.profile" ]; then
+                SHELL_PROFILE="$HOME/.profile"
+            fi
+            ;;
+    esac
 
     if [ -n "$SHELL_PROFILE" ]; then
         # Check if already added
@@ -86,12 +103,19 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
         else
             echo "" >> "$SHELL_PROFILE"
             echo "# Added by $BINARY_NAME installer" >> "$SHELL_PROFILE"
-            echo "export PATH=\"\$HOME/.gm/bin:\$PATH\"" >> "$SHELL_PROFILE"
+
+            # Use appropriate syntax for the shell
+            if [ "$DETECTED_SHELL" = "fish" ]; then
+                echo "set -gx PATH \$HOME/.gm/bin \$PATH" >> "$SHELL_PROFILE"
+            else
+                echo "export PATH=\"\$HOME/.gm/bin:\$PATH\"" >> "$SHELL_PROFILE"
+            fi
+
             echo "✅ Updated $SHELL_PROFILE"
             echo "   Run: source $SHELL_PROFILE"
         fi
     else
-        echo "⚠️  Could not detect shell profile"
+        echo "⚠️  Could not detect shell profile (shell: $DETECTED_SHELL)"
         echo "   Please add manually: export PATH=\"\$HOME/.gm/bin:\$PATH\""
     fi
 fi
