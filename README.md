@@ -7,6 +7,25 @@ A simple Go version manager that can help you install and manage multiple versio
 - Install multiple Go versions side-by-side
 - Switch between installed versions
 
+## Supported Platforms
+
+| OS | Architecture | Shell | Status |
+|----|--------------|-------|--------|
+| Linux | amd64 | zsh | tested ✅ |
+| Linux | amd64 | bash | implemented |
+| Linux | amd64 | fish | implemented |
+| Linux | arm64 | zsh | implemented |
+| Linux | arm64 | bash | implemented |
+| Linux | arm64 | fish | implemented |
+| macOS | amd64 | zsh | implemented |
+| macOS | amd64 | bash | implemented |
+| macOS | amd64 | fish | implemented |
+| macOS | arm64 | zsh | implemented |
+| macOS | arm64 | bash | implemented |
+| macOS | arm64 | fish | implemented |
+| Windows | amd64 | PowerShell | experimental |
+| Windows | arm64 | PowerShell | experimental |
+
 ## Installation
 
 ### Linux / macOS
