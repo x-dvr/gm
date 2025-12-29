@@ -4,9 +4,10 @@
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$REPO = "x-dvr/gm"
+$PROGRAM_NAME = "gm"
+$REPO = "x-dvr/$PROGRAM_NAME"
 $INSTALL_DIR = Join-Path $env:USERPROFILE ".gm\bin"
-$BINARY_NAME = "gm.exe"
+$BINARY_NAME = "$PROGRAM_NAME.exe"
 $EXT = "zip"
 
 # Detect architecture
@@ -41,7 +42,7 @@ if (-not $VERSION) {
 Write-Host "📌 Latest version: $VERSION" -ForegroundColor Green
 
 # Download
-$ARCHIVE_NAME = "${BINARY_NAME}_${OS}.${ARCH}.${EXT}"
+$ARCHIVE_NAME = "${PROGRAM_NAME}_${OS}.${ARCH}.${EXT}"
 $DOWNLOAD_URL = "https://github.com/$REPO/releases/download/$VERSION/$ARCHIVE_NAME"
 
 Write-Host "⬇️  Downloading from: $DOWNLOAD_URL" -ForegroundColor Cyan
