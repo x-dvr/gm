@@ -21,9 +21,8 @@ Legend:
 | Linux | amd64 | bash, fish | ℹ️ |
 | Linux | arm64 | zsh, bash, fish | ℹ️ |
 | macOS | amd64 | zsh, bash, fish | ℹ️ |
-| macOS | arm64 | zsh | ℹ️ |
-| macOS | arm64 | bash | ℹ️ |
-| macOS | arm64 | fish | ℹ️ |
+| macOS | arm64 | zsh | ✅ |
+| macOS | arm64 | bash, fish | ℹ️ |
 | Windows | amd64 | PowerShell* | ✅ |
 | Windows | arm64 | PowerShell* | ℹ️ |
 
