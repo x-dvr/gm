@@ -47,6 +47,6 @@ func SetGoEnvs() error {
 	return nil
 }
 
-func createSymlink(src, dst string) error {
-	return os.Symlink(src, dst)
+func createSymlink(target, link string) error {
+	return os.Symlink(target, link)
 }

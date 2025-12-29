@@ -7,7 +7,6 @@ package sys
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -127,47 +126,14 @@ func broadcastSettingChange() {
 	)
 }
 
-func createSymlink(src, dst string) error {
-	target, err := windows.UTF16PtrFromString(src)
-	if err != nil {
-		return fmt.Errorf("convert source path: %w", err)
-	}
-	link, err := windows.UTF16PtrFromString(dst)
-	if err != nil {
-		return fmt.Errorf("convert link path: %w", err)
-	}
-
-	// Use CreateSymbolicLink with SYMBOLIC_LINK_FLAG_DIRECTORY flag
-	// On Windows 10 1703+ this works without admin if Developer Mode is enabled
-	kernel32 := windows.NewLazySystemDLL("kernel32.dll")
-	procCreateSymbolicLink := kernel32.NewProc("CreateSymbolicLinkW")
-
-	// SYMBOLIC_LINK_FLAG_DIRECTORY indicates the link target is a directory
-	const SYMBOLIC_LINK_FLAG_DIRECTORY = 0x1
-	// SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE allows creation without admin privileges (Windows 10 1703+)
-	const SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE = 0x2
-	// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createsymboliclinkw
-	ret, _, err := procCreateSymbolicLink.Call(
-		uintptr(unsafe.Pointer(link)),
-		uintptr(unsafe.Pointer(target)),
-		uintptr(SYMBOLIC_LINK_FLAG_DIRECTORY|SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE),
-	)
-
-	if ret == 0 {
-		errStr := ""
-		if err != nil {
-			errStr = err.Error()
-		}
-		slog.Info("Create symlink fallback", slog.String("error", errStr))
-		return createJunctionFallback(src, dst)
-	}
-
-	return nil
+func createSymlink(target, link string) error {
+	// os.Symlink(target, link) on Windows requires admin privileges
+	return createJunctionFallback(target, link)
 }
 
 // createJunctionFallback creates a directory junction using cmd.exe mklink
-func createJunctionFallback(src, dst string) error {
-	cmd := exec.Command("cmd.exe", "/C", "mklink", "/J", src, dst)
+func createJunctionFallback(target, link string) error {
+	cmd := exec.Command("cmd.exe", "/C", "mklink", "/J", link, target)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("create junction: %w (output: %s)", err, string(output))
