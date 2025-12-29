@@ -9,22 +9,28 @@ A simple Go version manager that can help you install and manage multiple versio
 
 ## Supported Platforms
 
+Legend:
+
+✅ - Supported and tested by maintainer
+
+ℹ️ - Expected to work, but not actively tested
+
 | OS | Architecture | Shell | Status |
 |----|--------------|-------|--------|
-| Linux | amd64 | zsh | tested ✅ |
-| Linux | amd64 | bash | implemented |
-| Linux | amd64 | fish | implemented |
-| Linux | arm64 | zsh | implemented |
-| Linux | arm64 | bash | implemented |
-| Linux | arm64 | fish | implemented |
-| macOS | amd64 | zsh | implemented |
-| macOS | amd64 | bash | implemented |
-| macOS | amd64 | fish | implemented |
-| macOS | arm64 | zsh | implemented |
-| macOS | arm64 | bash | implemented |
-| macOS | arm64 | fish | implemented |
-| Windows | amd64 | PowerShell | experimental |
-| Windows | arm64 | PowerShell | experimental |
+| Linux | amd64 | zsh | ✅ |
+| Linux | amd64 | bash | ℹ️ |
+| Linux | amd64 | fish | ℹ️ |
+| Linux | arm64 | zsh | ℹ️ |
+| Linux | arm64 | bash | ℹ️ |
+| Linux | arm64 | fish | ℹ️ |
+| macOS | amd64 | zsh | ℹ️ |
+| macOS | amd64 | bash | ℹ️ |
+| macOS | amd64 | fish | ℹ️ |
+| macOS | arm64 | zsh | ℹ️ |
+| macOS | arm64 | bash | ℹ️ |
+| macOS | arm64 | fish | ℹ️ |
+| Windows | amd64 | PowerShell | ✅ |
+| Windows | arm64 | PowerShell | ℹ️ |
 
 ## Installation
 
