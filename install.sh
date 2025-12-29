@@ -107,8 +107,10 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
             # Use appropriate syntax for the shell
             if [ "$DETECTED_SHELL" = "fish" ]; then
                 echo "set -gx PATH \$HOME/.gm/bin \$PATH" >> "$SHELL_PROFILE"
+                echo "gm env | source" >> "$SHELL_PROFILE"
             else
                 echo "export PATH=\"\$HOME/.gm/bin:\$PATH\"" >> "$SHELL_PROFILE"
+                echo "eval \$(gm env)" >> "$SHELL_PROFILE"
             fi
 
             echo "✅ Updated $SHELL_PROFILE"
