@@ -77,7 +77,7 @@ func SetAsCurrent(version string) error {
 		return fmt.Errorf("reset current version: %w", err)
 	}
 
-	return os.Symlink(versionPath, currentPath)
+	return createSymlink(versionPath, currentPath)
 }
 
 func GetCurrentVersion() (string, error) {
