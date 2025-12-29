@@ -17,14 +17,22 @@ import (
 var (
 	kernel32                    = syscall.NewLazyDLL("kernel32.dll")
 	user32                      = syscall.NewLazyDLL("user32.dll")
+	advapi32                    = syscall.NewLazyDLL("advapi32.dll")
 	procSetEnvironmentVariableW = kernel32.NewProc("SetEnvironmentVariableW")
 	procSendMessageTimeoutW     = user32.NewProc("SendMessageTimeoutW")
+	procRegOpenKeyExW           = advapi32.NewProc("RegOpenKeyExW")
+	procRegSetValueExW          = advapi32.NewProc("RegSetValueExW")
+	procRegCloseKey             = advapi32.NewProc("RegCloseKey")
 )
 
 const (
 	HWND_BROADCAST   = uintptr(0xffff)
 	WM_SETTINGCHANGE = 0x001A
 	SMTO_ABORTIFHUNG = 0x0002
+
+	HKEY_CURRENT_USER = 0x80000001
+	KEY_WRITE         = 0x20006
+	REG_EXPAND_SZ     = 2
 )
 
 // setUserEnv sets a user-level environment variable in the Windows registry
@@ -34,18 +42,18 @@ func setUserEnv(name, value string) error {
 		return err
 	}
 
-	var regKey syscall.Handle
-	err = syscall.RegOpenKeyEx(
-		syscall.HKEY_CURRENT_USER,
-		key,
+	var regKey uintptr
+	ret, _, _ := procRegOpenKeyExW.Call(
+		uintptr(HKEY_CURRENT_USER),
+		uintptr(unsafe.Pointer(key)),
 		0,
-		syscall.KEY_WRITE,
-		&regKey,
+		KEY_WRITE,
+		uintptr(unsafe.Pointer(&regKey)),
 	)
-	if err != nil {
-		return fmt.Errorf("open registry key: %w", err)
+	if ret != 0 {
+		return fmt.Errorf("open registry key: error code %d", ret)
 	}
-	defer syscall.RegCloseKey(regKey)
+	defer procRegCloseKey.Call(regKey)
 
 	valuePtr, err := syscall.UTF16PtrFromString(value)
 	if err != nil {
@@ -56,16 +64,19 @@ func setUserEnv(name, value string) error {
 		return err
 	}
 
-	err = syscall.RegSetValueEx(
+	valueBytes := (*byte)(unsafe.Pointer(valuePtr))
+	valueLen := uint32((len(value) + 1) * 2)
+
+	ret, _, _ = procRegSetValueExW.Call(
 		regKey,
-		namePtr,
+		uintptr(unsafe.Pointer(namePtr)),
 		0,
-		syscall.REG_EXPAND_SZ,
-		(*byte)(unsafe.Pointer(valuePtr)),
-		uint32((len(value)+1)*2),
+		REG_EXPAND_SZ,
+		uintptr(unsafe.Pointer(valueBytes)),
+		uintptr(valueLen),
 	)
-	if err != nil {
-		return fmt.Errorf("set registry value: %w", err)
+	if ret != 0 {
+		return fmt.Errorf("set registry value: error code %d", ret)
 	}
 
 	return nil
