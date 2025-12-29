@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/x-dvr/gm/sys"
@@ -16,20 +17,22 @@ var listCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Args:    cobra.ExactArgs(0),
 	Short:   "List all installed versions of Go toolchain",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		installed, err := sys.ListInstalledVersions()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Failed list installed versions: %s", err.Error())
+			os.Exit(1)
 		}
 
 		if len(installed) == 0 {
 			fmt.Println("No Go versions installed")
-			return nil
+			return
 		}
 
 		current, err := sys.GetCurrentVersion()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Failed to determine current version: %s", err.Error())
+			os.Exit(1)
 		}
 
 		for _, version := range installed {
@@ -39,8 +42,6 @@ var listCmd = &cobra.Command{
 				fmt.Printf("  %s\n", version)
 			}
 		}
-
-		return nil
 	},
 }
 

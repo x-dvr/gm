@@ -4,6 +4,9 @@ Copyright © 2025 DENIS RODIN <denis.rodin@proton.me>
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/x-dvr/gm/sys"
 )
@@ -15,8 +18,11 @@ var envCmd = &cobra.Command{
 	Long: `Example usage:
 eval $(gm env)
 `,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return sys.SetGoEnvs()
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := sys.SetGoEnvs(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to prepare env variables: %s", err.Error())
+			os.Exit(1)
+		}
 	},
 }
 

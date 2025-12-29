@@ -36,7 +36,7 @@ as default run the following set of commands:
 			}
 			fmt.Println("gm - Go version manager")
 			fmt.Println("Version:", info.Main.Version)
-			fmt.Println("Built using:", info.GoVersion)
+			fmt.Println("Built with:", info.GoVersion)
 			os.Exit(0)
 		}
 	},

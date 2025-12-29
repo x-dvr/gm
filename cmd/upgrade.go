@@ -23,22 +23,23 @@ var upgradeCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(0),
 	Short:   "Upgrade self",
 	Long:    "Upgrade gm to latest version",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 		exePath, err := os.Executable()
 		if err != nil {
-			return fmt.Errorf("determine path of executable: %w", err)
+			fmt.Fprintf(os.Stderr, "Failed to determine path of executable: %s", err.Error())
+			os.Exit(1)
 		}
 		installPath := filepath.Dir(exePath)
 
 		latest, err := upgrade.GetUpdate(ctx)
 		if err != nil {
-			return fmt.Errorf("determine latest version: %w", err)
+			fmt.Fprintf(os.Stderr, "Failed to determine latest version: %s", err.Error())
+			os.Exit(1)
 		}
 		if latest == nil {
 			fmt.Println("No updates available")
-			return nil
 		}
 
 		fmt.Println("Update available:", latest.Version)
@@ -46,29 +47,32 @@ var upgradeCmd = &cobra.Command{
 		if err != nil {
 			if errors.Is(err, upgrade.ErrPlatformNotSupported) {
 				fmt.Printf("Platform %s %s is not supported\n", runtime.GOOS, runtime.GOARCH)
-				return nil
+				return
 			}
-			return err
+			fmt.Fprintf(os.Stderr, "Failed to find update files for this system: %s", err.Error())
+			os.Exit(1)
 		}
 		fmt.Println("Downloading", asset.URL)
 		downloadPath, err := asset.Download()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Failed to download update: %s", err.Error())
+			os.Exit(1)
 		}
 		if err := os.Rename(exePath, exePath+".bak"); err != nil {
-			return fmt.Errorf("rename executable: %w", err)
+			fmt.Fprintf(os.Stderr, "Failed to backup current executable: %s", err.Error())
+			os.Exit(1)
 		}
 
 		if err = upgrade.Extract(downloadPath, installPath); err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Failed to extract: %s", err.Error())
+			os.Exit(1)
 		}
 		fmt.Println("Updated", exePath)
 
 		if err = os.Remove(downloadPath); err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Failed to cleanup: %s", err.Error())
+			os.Exit(1)
 		}
-
-		return nil
 	},
 }
 

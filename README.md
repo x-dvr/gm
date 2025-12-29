@@ -51,6 +51,8 @@ Install the latest version of Go:
 
 ```bash
 gm install latest
+# or
+gm i
 ```
 
 Install a specific version:

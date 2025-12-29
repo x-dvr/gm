@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"os"
 	"path"
@@ -30,7 +29,7 @@ const installSuccessMarker = ".install-success"
 func Install(version, destPath string) error {
 	dir, err := os.Stat(filepath.Join(destPath, installSuccessMarker))
 	if err == nil && dir.IsDir() {
-		slog.Info("Version of Go toolchain is already installed", slog.String("version", version), slog.String("path", destPath))
+		fmt.Printf("Version %s of Go toolchain is already installed\n", version)
 		return nil
 	}
 
@@ -77,14 +76,14 @@ func Install(version, destPath string) error {
 	if err := verifySHA256(archiveFile, expectedSHA); err != nil {
 		return fmt.Errorf("verify SHA256 of %s: %w", archiveFile, err)
 	}
-	slog.Info(fmt.Sprintf("Unpacking %s ...", archiveFile))
+	fmt.Printf("Unpacking %s ...\n", archiveFile)
 	if err := unpackArchive(destPath, archiveFile); err != nil {
 		return fmt.Errorf("extract archive %s: %w", archiveFile, err)
 	}
 	if err := os.WriteFile(filepath.Join(destPath, installSuccessMarker), nil, 0644); err != nil {
 		return err
 	}
-	slog.Info(fmt.Sprintf("Successfully installed Go toolchain version '%s'", version))
+	fmt.Printf("Successfully installed Go toolchain version %q\n", version)
 	return nil
 }
 
@@ -182,7 +181,7 @@ func unpackTarGz(targetDir, archiveFile string) error {
 					// on it anywhere (the gomote push command relies
 					// on digests only), so this is a little pointless
 					// for now.
-					slog.Error("Error changing modtime", slog.String("error", err.Error()))
+					fmt.Fprintf(os.Stderr, "Error changing modtime: %s\n", err.Error())
 				}
 			}
 		case mode.IsDir():
