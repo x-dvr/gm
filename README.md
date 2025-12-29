@@ -18,19 +18,16 @@ Legend:
 | OS | Architecture | Shell | Status |
 |----|--------------|-------|--------|
 | Linux | amd64 | zsh | ✅ |
-| Linux | amd64 | bash | ℹ️ |
-| Linux | amd64 | fish | ℹ️ |
-| Linux | arm64 | zsh | ℹ️ |
-| Linux | arm64 | bash | ℹ️ |
-| Linux | arm64 | fish | ℹ️ |
-| macOS | amd64 | zsh | ℹ️ |
-| macOS | amd64 | bash | ℹ️ |
-| macOS | amd64 | fish | ℹ️ |
+| Linux | amd64 | bash, fish | ℹ️ |
+| Linux | arm64 | zsh, bash, fish | ℹ️ |
+| macOS | amd64 | zsh, bash, fish | ℹ️ |
 | macOS | arm64 | zsh | ℹ️ |
 | macOS | arm64 | bash | ℹ️ |
 | macOS | arm64 | fish | ℹ️ |
-| Windows | amd64 | PowerShell | ✅ |
-| Windows | arm64 | PowerShell | ℹ️ |
+| Windows | amd64 | PowerShell* | ✅ |
+| Windows | arm64 | PowerShell* | ℹ️ |
+
+\* Due to name conflicts this tool must be executed as `gm.exe` in Powershell.
 
 ## Installation
 
@@ -61,7 +58,7 @@ Install a specific version:
 ```bash
 gm install 1.22.0
 # or
-gm install go1.22.0
+gm i go1.22.0
 ```
 
 ### Switch Go Version
