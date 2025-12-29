@@ -9,8 +9,16 @@ A simple Go version manager that can help you install and manage multiple versio
 
 ## Installation
 
+### Linux / macOS
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/x-dvr/gm/master/install.sh | bash
+```
+
+### Windows
+
+```powershell
+irm https://raw.githubusercontent.com/x-dvr/gm/master/install.ps1 | iex
 ```
 
 ## Usage
@@ -67,11 +75,17 @@ gm up
 
 Configure your shell to use the current Go version:
 
+**Linux / macOS:**
 ```bash
 eval $(gm env)
 ```
 
-Installation script adds this call to your shell profile (`.bashrc`, `.zshenv`, etc.) to automatically set up the environment on new shell sessions.
+**Windows (PowerShell):**
+```powershell
+gm env | Out-String | Invoke-Expression
+```
+
+Installation script automatically adds this to your shell profile (`.bashrc`, `.zshenv`, PowerShell `$PROFILE`, etc.) to set up the environment on new shell sessions.
 
 ## Commands
 
