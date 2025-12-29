@@ -73,20 +73,6 @@ eval $(gm env)
 
 Installation script adds this call to your shell profile (`.bashrc`, `.zshenv`, etc.) to automatically set up the environment on new shell sessions.
 
-## Quick Start
-
-Get started with the latest Go version in two commands:
-
-```bash
-gm install latest
-```
-
-Don't forget to configure your shell:
-
-```bash
-eval $(gm env)
-```
-
 ## Commands
 
 | Command | Alias | Description |
