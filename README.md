@@ -1,4 +1,4 @@
-# gm
+# gm - Go version manager
 
 A simple Go version manager that can help you install and manage multiple versions of Go on your system.
 
@@ -92,19 +92,19 @@ gm up
 
 ### Set Environment Variables
 
-Configure your shell to use the current Go version:
+Configure your shell to use the current Go version (set environment variables):
 
 **Linux / macOS:**
 ```bash
 eval $(gm env)
 ```
 
-**Windows (PowerShell):**
+**Windows:**
 ```powershell
-gm env | Out-String | Invoke-Expression
+gm env
 ```
 
-Installation script automatically adds this to your shell profile (`.bashrc`, `.zshenv`, PowerShell `$PROFILE`, etc.) to set up the environment on new shell sessions.
+Installation script automatically adds this command to your shell profile (`.bashrc`, `.zshenv`, etc.) on unix-like systems to set up the environment on new shell sessions. On Windows this command is executed once in installation script to setup user-scoped environment variables.
 
 ## Commands
 
