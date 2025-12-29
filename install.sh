@@ -114,7 +114,6 @@ if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
             fi
 
             echo "✅ Updated $SHELL_PROFILE"
-            echo "   Run: source $SHELL_PROFILE"
         fi
     else
         echo "⚠️  Could not detect shell profile (shell: $DETECTED_SHELL)"
@@ -125,4 +124,5 @@ fi
 echo ""
 echo "✅ Successfully installed $BINARY_NAME $VERSION"
 echo ""
-echo "Run '$BINARY_NAME --version' to verify installation"
+echo "Run: source $SHELL_PROFILE"
+echo "And then run '$BINARY_NAME --version' to verify installation"
