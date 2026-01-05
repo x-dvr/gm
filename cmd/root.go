@@ -62,9 +62,14 @@ func Execute() {
 	}
 }
 
+func printError(fstr string, args ...any) {
+	out := sError.Render(fmt.Sprintf(fstr, args...))
+	fmt.Fprintln(os.Stderr, out)
+}
+
 var (
 	theme     = ui.Catppuccin{}
-	sTitleBar = lipgloss.NewStyle().Padding(0, 0, 1, 2)
+	sTitleBar = lipgloss.NewStyle().Padding(1, 0, 1, 2)
 	sTitle    = lipgloss.NewStyle().
 			Background(theme.Accent()).
 			Foreground(theme.Background()).

@@ -64,13 +64,13 @@ func (a *Asset) Download() (string, error) {
 		return "", fmt.Errorf("fetch asset: %w", err)
 	}
 	defer res.Body.Close()
+	if res.StatusCode >= 400 {
+		return "", fmt.Errorf("wrong HTTP response: %s", res.Status)
+	}
 	// size, err := strconv.Atoi(res.Header.Get("Content-Length"))
 	// if err != nil {
 	// 	return "", fmt.Errorf("get download size: %w", err)
 	// }
-	if res.StatusCode >= 400 {
-		return "", fmt.Errorf("wrong HTTP response: %s", res.Status)
-	}
 
 	if _, err := io.Copy(f, res.Body); err != nil {
 		return "", fmt.Errorf("download asset: %w", err)

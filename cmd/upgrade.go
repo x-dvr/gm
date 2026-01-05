@@ -39,20 +39,20 @@ var upgradeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		if latest == nil {
-			fmt.Println("No updates available")
+			fmt.Println(sInfo.Render("\nNo updates available"))
 		}
 
-		fmt.Println("Update available:", latest.Version)
+		fmt.Println(sText.Padding(0, 2).Render("\nUpdate available:"), sActiveText.Render(latest.Version))
 		asset, err := latest.FindAsset(runtime.GOOS, runtime.GOARCH)
 		if err != nil {
 			if errors.Is(err, upgrade.ErrPlatformNotSupported) {
-				fmt.Printf("Platform %s %s is not supported\n", runtime.GOOS, runtime.GOARCH)
+				fmt.Println(sError.Render(fmt.Sprintf("Platform %s %s is not supported", runtime.GOOS, runtime.GOARCH)))
 				return
 			}
 			printError("Failed to find update files for this system: %s", err)
 			os.Exit(1)
 		}
-		fmt.Println("Downloading", asset.URL)
+		fmt.Println(sText.Padding(0, 2).Render("Downloading", asset.URL))
 		downloadPath, err := asset.Download()
 		if err != nil {
 			printError("Failed to download update: %s", err)
@@ -67,7 +67,7 @@ var upgradeCmd = &cobra.Command{
 			printError("Failed to extract: %s", err)
 			os.Exit(1)
 		}
-		fmt.Println("Updated", exePath)
+		fmt.Println(sText.Padding(0, 2).Render("Updated"), sActiveText.Render(exePath))
 
 		if err = os.Remove(downloadPath); err != nil {
 			printError("Failed to cleanup: %s", err)

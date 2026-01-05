@@ -59,8 +59,3 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 }
-
-func printError(fstr string, args ...any) {
-	out := sError.Render(fmt.Sprintf(fstr, args...))
-	fmt.Fprintln(os.Stderr, out)
-}
