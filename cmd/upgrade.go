@@ -28,14 +28,14 @@ var upgradeCmd = &cobra.Command{
 		defer cancel()
 		exePath, err := os.Executable()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to determine path of executable: %s", err.Error())
+			printError("Failed to determine path of executable: %s", err)
 			os.Exit(1)
 		}
 		installPath := filepath.Dir(exePath)
 
 		latest, err := upgrade.GetUpdate(ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to determine latest version: %s", err.Error())
+			printError("Failed to determine latest version: %s", err)
 			os.Exit(1)
 		}
 		if latest == nil {
@@ -49,28 +49,28 @@ var upgradeCmd = &cobra.Command{
 				fmt.Printf("Platform %s %s is not supported\n", runtime.GOOS, runtime.GOARCH)
 				return
 			}
-			fmt.Fprintf(os.Stderr, "Failed to find update files for this system: %s", err.Error())
+			printError("Failed to find update files for this system: %s", err)
 			os.Exit(1)
 		}
 		fmt.Println("Downloading", asset.URL)
 		downloadPath, err := asset.Download()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to download update: %s", err.Error())
+			printError("Failed to download update: %s", err)
 			os.Exit(1)
 		}
 		if err := os.Rename(exePath, exePath+".bak"); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to backup current executable: %s", err.Error())
+			printError("Failed to backup current executable: %s", err)
 			os.Exit(1)
 		}
 
 		if err = upgrade.Extract(downloadPath, installPath); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to extract: %s", err.Error())
+			printError("Failed to extract: %s", err)
 			os.Exit(1)
 		}
 		fmt.Println("Updated", exePath)
 
 		if err = os.Remove(downloadPath); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to cleanup: %s", err.Error())
+			printError("Failed to cleanup: %s", err)
 			os.Exit(1)
 		}
 	},

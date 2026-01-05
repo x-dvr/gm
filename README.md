@@ -82,7 +82,7 @@ gm list
 gm ls
 ```
 
-The current version will be marked with a check mark.
+The current version will be marked with a `┃` symbol
 
 ### Upgrade gm
 
@@ -108,7 +108,7 @@ eval $(gm env)
 gm env
 ```
 
-Installation script automatically adds this command to your shell profile (`.bashrc`, `.zshenv`, etc.) on unix-like systems to set up the environment on new shell sessions. On Windows this command is executed once in installation script to setup user-scoped environment variables.
+Installation script automatically adds this command to your shell profile (`bashrc`, `.zshenv`, etc.) on unix-like systems to set up the environment on new shell sessions. On Windows this command is executed once in installation script to setup user-scoped environment variables.
 
 ## Commands
 

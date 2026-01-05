@@ -4,7 +4,6 @@ Copyright © 2025 DENIS RODIN <denis.rodin@proton.me>
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -24,7 +23,7 @@ var useCmd = &cobra.Command{
 		if version == versionLatest {
 			version, err = toolchain.GetLatestVersion()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to get latest Go version: %s", err.Error())
+				printError("Failed to get latest Go version: %s", err)
 				os.Exit(1)
 			}
 		}
@@ -33,7 +32,7 @@ var useCmd = &cobra.Command{
 		}
 
 		if err := sys.SetAsCurrent(version); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to prepare env variables: %s", err.Error())
+			printError("Failed to set current version: %s", err)
 			os.Exit(1)
 		}
 	},

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+
 	"github.com/x-dvr/gm/sys"
 )
 
@@ -20,31 +22,45 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		installed, err := sys.ListInstalledVersions()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed list installed versions: %s", err.Error())
+			printError("Failed to list installed versions: %s", err)
 			os.Exit(1)
 		}
 
+		fmt.Println(sTitleBar.Render(sTitle.Render("Installed versions of Go")))
 		if len(installed) == 0 {
-			fmt.Println("No Go versions installed")
+			fmt.Println(sPadLeft.Render(sInfo.Render("No Go versions found")))
 			return
 		}
 
 		current, err := sys.GetCurrentVersion()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to determine current version: %s", err.Error())
+			printError("Failed to determine current version: %s", err)
 			os.Exit(1)
 		}
 
-		for _, version := range installed {
-			if version == current {
-				fmt.Printf("✓ %s (current)\n", version)
+		items := make([]string, 0, len(installed))
+
+		for _, toolchain := range installed {
+			if toolchain.Version == current.Version {
+				text := sActiveText.Render(toolchain.Version + " - current")
+				sub := sSubtext.Render(toolchain.Path)
+				items = append(items, sActiveListItem.Render(text+"\n"+sub))
 			} else {
-				fmt.Printf("  %s\n", version)
+				text := sText.Render(toolchain.Version)
+				sub := sSubtext.Render(toolchain.Path)
+				items = append(items, sListItem.Render(text+"\n"+sub))
 			}
 		}
+
+		fmt.Println(sPadLeft.Render(lipgloss.JoinVertical(lipgloss.Left, items...)))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+}
+
+func printError(fstr string, args ...any) {
+	out := sError.Render(fmt.Sprintf(fstr, args...))
+	fmt.Fprintln(os.Stderr, out)
 }

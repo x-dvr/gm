@@ -8,7 +8,10 @@ import (
 	"os"
 	"runtime/debug"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
+
+	"github.com/x-dvr/gm/ui"
 )
 
 const versionLatest = "latest"
@@ -23,20 +26,23 @@ var rootCmd = &cobra.Command{
 Helps to install and use multiple versions of Go at the same time.
 
 To install latest version of Go toolchain and use it
-as default run the following set of commands:
+as default run the following command:
 	gm install latest
-	gm use latest
 `,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if showVersion {
 			info, ok := debug.ReadBuildInfo()
 			if !ok {
-				fmt.Println("Build info not available")
+				fmt.Println(sPadLeft.Render(sInfo.Render("Build info not available")))
 				os.Exit(0)
 			}
-			fmt.Println("gm - Go version manager")
-			fmt.Println("Version:", info.Main.Version)
-			fmt.Println("Built with:", info.GoVersion)
+			fmt.Println(sPanel.Render(
+				lipgloss.JoinVertical(lipgloss.Center,
+					sActiveText.Render("gm - Go version manager"),
+					sText.Render("Version:", info.Main.Version),
+					sSubtext.Render("Built with:", info.GoVersion),
+				),
+			))
 			os.Exit(0)
 		}
 	},
@@ -55,3 +61,35 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
+var (
+	theme     = ui.Catppuccin{}
+	sTitleBar = lipgloss.NewStyle().Padding(0, 0, 1, 2)
+	sTitle    = lipgloss.NewStyle().
+			Background(theme.Accent()).
+			Foreground(theme.Background()).
+			Padding(0, 1)
+	sPadLeft = lipgloss.NewStyle().Padding(0, 0, 0, 1)
+	sPanel   = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder(), true).
+			BorderForeground(theme.Text()).
+			Padding(1, 3).
+			Margin(1, 1)
+	sListItem = lipgloss.NewStyle().
+			Padding(0, 0, 0, 2).
+			Margin(0, 0, 1)
+	sActiveListItem = lipgloss.NewStyle().
+			Border(lipgloss.ThickBorder(), false, false, false, true).
+			BorderForeground(theme.Accent()).
+			Padding(0, 0, 0, 1).
+			Margin(0, 0, 1)
+	sText       = lipgloss.NewStyle().Foreground(theme.Subdued(4))
+	sActiveText = lipgloss.NewStyle().Foreground(theme.Accent())
+	sSubtext    = lipgloss.NewStyle().Foreground(theme.Surface(2))
+	sInfo       = lipgloss.NewStyle().
+			Padding(0, 0, 0, 2).
+			Foreground(theme.Info())
+	sError = lipgloss.NewStyle().
+		Padding(1, 1).
+		Foreground(theme.Error())
+)

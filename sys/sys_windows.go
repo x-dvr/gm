@@ -29,7 +29,7 @@ const (
 	SMTO_ABORTIFHUNG = 0x0002
 )
 
-func SetGoEnvs() error {
+func PrepareGoEnvs() error {
 	path := os.Getenv("PATH")
 	if path == "" {
 		return ErrNoPath

@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func SetGoEnvs() error {
+func PrepareGoEnvs() error {
 	path := os.Getenv("PATH")
 	if path == "" {
 		return ErrNoPath

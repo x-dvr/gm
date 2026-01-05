@@ -23,6 +23,11 @@ var (
 	ErrNotInstalled = errors.New("version is not installed")
 )
 
+type Toolchain struct {
+	Version string
+	Path    string
+}
+
 func PathForVersion(version string) (string, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
@@ -31,7 +36,7 @@ func PathForVersion(version string) (string, error) {
 	return filepath.Join(homedir, gmDir, versions, version), nil
 }
 
-func ListInstalledVersions() ([]string, error) {
+func ListInstalledVersions() ([]Toolchain, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("get home dir of user: %w", err)
@@ -42,15 +47,18 @@ func ListInstalledVersions() ([]string, error) {
 	entries, err := os.ReadDir(versionsPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []string{}, nil
+			return []Toolchain{}, nil
 		}
 		return nil, fmt.Errorf("read versions directory: %w", err)
 	}
 
-	var installed []string
+	var installed []Toolchain
 	for _, entry := range entries {
 		if entry.IsDir() && strings.HasPrefix(entry.Name(), "go") {
-			installed = append(installed, entry.Name())
+			installed = append(installed, Toolchain{
+				Path:    filepath.Join(versionsPath, entry.Name()),
+				Version: strings.TrimPrefix(entry.Name(), "go"),
+			})
 		}
 	}
 	return installed, nil
@@ -80,20 +88,25 @@ func SetAsCurrent(version string) error {
 	return createSymlink(versionPath, currentPath)
 }
 
-func GetCurrentVersion() (string, error) {
+func GetCurrentVersion() (*Toolchain, error) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
-		return "", fmt.Errorf("get home dir of user: %w", err)
+		return nil, fmt.Errorf("get home dir of user: %w", err)
 	}
 
 	currentPath := filepath.Join(homedir, gmDir, versions, current)
 	target, err := os.Readlink(currentPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", nil
+			return nil, nil
 		}
-		return "", fmt.Errorf("read current version symlink: %w", err)
+		return nil, fmt.Errorf("read current version symlink: %w", err)
 	}
 
-	return filepath.Base(target), nil
+	t := Toolchain{
+		Path:    target,
+		Version: strings.TrimPrefix(filepath.Base(target), "go"),
+	}
+
+	return &t, nil
 }
