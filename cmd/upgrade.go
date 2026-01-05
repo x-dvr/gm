@@ -40,6 +40,7 @@ var upgradeCmd = &cobra.Command{
 		}
 		if latest == nil {
 			fmt.Println(sInfo.Render("\nNo updates available"))
+			os.Exit(0)
 		}
 
 		fmt.Println(sText.Padding(0, 2).Render("\nUpdate available:"), sActiveText.Render(latest.Version))
