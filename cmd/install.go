@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/x-dvr/gm/sys"
 	"github.com/x-dvr/gm/toolchain"
+	"github.com/x-dvr/gm/ui/pbar"
 )
 
 // installCmd represents the install command
@@ -43,14 +44,25 @@ var installCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = toolchain.Install(version, destPath)
-		if err != nil {
-			printError("Failed to download toolchain (ver. %s) into path %q: %s", version, destPath, err)
-			os.Exit(1)
-		}
+		unprefixed := strings.TrimPrefix(version, "go")
+		tui := pbar.New(fmt.Sprintf("Installing Go %s", unprefixed))
 
-		if err := sys.SetAsCurrent(version); err != nil {
-			printError("Failed to set installed toolchain version %q as current: %s", version, err)
+		go func() {
+			err = toolchain.Install(version, destPath, tui.GetTracker())
+			if err != nil {
+				tui.Exit(fmt.Errorf("install toolchain (ver. %s) into path %q: %w", unprefixed, destPath, err))
+				return
+			}
+
+			if err := sys.SetAsCurrent(version); err != nil {
+				tui.Exit(fmt.Errorf("set installed toolchain version %q as current: %w", unprefixed, err))
+				return
+			}
+
+			tui.Exit(nil)
+		}()
+
+		if err := tui.Run(); err != nil {
 			os.Exit(1)
 		}
 	},

@@ -25,8 +25,9 @@ func extractZip(src, dest string, tracker progress.IOTracker) error {
 	for _, f := range r.File {
 		tracker.Reset(fmt.Sprintf("Extracting %s ...", f.Name))
 		fpath := filepath.Join(dest, f.Name)
+		fi := f.FileInfo()
 
-		if f.FileInfo().IsDir() {
+		if fi.IsDir() {
 			os.MkdirAll(fpath, os.ModePerm)
 			continue
 		}
@@ -46,7 +47,7 @@ func extractZip(src, dest string, tracker progress.IOTracker) error {
 			return err
 		}
 
-		tracker.SetSize(int64(f.UncompressedSize64))
+		tracker.SetSize(fi.Size())
 		_, err = io.Copy(outFile, tracker.Proxy(rc))
 		outFile.Close()
 		rc.Close()

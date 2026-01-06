@@ -17,19 +17,21 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
-	"time"
+
+	"github.com/x-dvr/gm/progress"
 )
 
 const goDownloadBaseURL = "https://dl.google.com/go"
 
 const installSuccessMarker = ".install-success"
 
-func Install(version, destPath string) error {
-	dir, err := os.Stat(filepath.Join(destPath, installSuccessMarker))
-	if err == nil && dir.IsDir() {
-		fmt.Printf("Version %s of Go toolchain is already installed\n", version)
+func Install(version, destPath string, tracker progress.IOTracker) error {
+	unprefixed := strings.TrimPrefix(version, "go")
+	markerPath := filepath.Join(destPath, installSuccessMarker)
+	_, err := os.Stat(markerPath)
+	if err == nil {
+		tracker.Reset(fmt.Sprintf("Version %s of Go toolchain is already installed", unprefixed))
 		return nil
 	}
 
@@ -57,7 +59,8 @@ func Install(version, destPath string) error {
 			// Something weird. Don't try to download.
 			return err
 		}
-		if err := downloadFromURL(archiveFile, goURL); err != nil {
+		tracker.Reset(fmt.Sprintf("Downloading %s ...", goURL))
+		if err := downloadFromURL(archiveFile, goURL, tracker); err != nil {
 			return fmt.Errorf("download %s: %w", goURL, err)
 		}
 		fi, err = os.Stat(archiveFile)
@@ -76,19 +79,13 @@ func Install(version, destPath string) error {
 	if err := verifySHA256(archiveFile, expectedSHA); err != nil {
 		return fmt.Errorf("verify SHA256 of %s: %w", archiveFile, err)
 	}
-	markerPath := filepath.Join(destPath, installSuccessMarker)
-	if _, err := os.Stat(markerPath); err == nil {
-		fmt.Printf("Go toolchain version %q is already installed\n", version)
-		return nil
-	}
-	fmt.Printf("Unpacking %s ...\n", archiveFile)
-	if err := unpackArchive(destPath, archiveFile); err != nil {
+	if err := unpackArchive(destPath, archiveFile, tracker); err != nil {
 		return fmt.Errorf("extract archive %s: %w", archiveFile, err)
 	}
 	if err := os.WriteFile(markerPath, nil, 0644); err != nil {
 		return err
 	}
-	fmt.Printf("Successfully installed Go toolchain version %q\n", version)
+	tracker.Reset(fmt.Sprintf("Successfully installed Go toolchain version %s", unprefixed))
 	return nil
 }
 
@@ -112,19 +109,19 @@ func verifySHA256(file, wantHex string) error {
 
 // unpackArchive unpacks the provided archive zip or tar.gz file to targetDir,
 // removing the "go/" prefix from file entries.
-func unpackArchive(targetDir, archiveFile string) error {
+func unpackArchive(targetDir, archiveFile string, tracker progress.IOTracker) error {
 	switch {
 	case strings.HasSuffix(archiveFile, ".zip"):
-		return unpackZip(targetDir, archiveFile)
+		return unpackZip(targetDir, archiveFile, tracker)
 	case strings.HasSuffix(archiveFile, ".tar.gz"):
-		return unpackTarGz(targetDir, archiveFile)
+		return unpackTarGz(targetDir, archiveFile, tracker)
 	default:
 		return errors.New("unsupported archive file")
 	}
 }
 
 // unpackTarGz is the tar.gz implementation of unpackArchive.
-func unpackTarGz(targetDir, archiveFile string) error {
+func unpackTarGz(targetDir, archiveFile string, tracker progress.IOTracker) error {
 	r, err := os.Open(archiveFile)
 	if err != nil {
 		return err
@@ -154,6 +151,7 @@ func unpackTarGz(targetDir, archiveFile string) error {
 		mode := fi.Mode()
 		switch {
 		case mode.IsRegular():
+			tracker.Reset(fmt.Sprintf("Extracting %s ...", f.Name))
 			// Make the directory. This is redundant because it should
 			// already be made by a directory entry in the tar
 			// beforehand. Thus, don't check for errors; the next
@@ -169,7 +167,8 @@ func unpackTarGz(targetDir, archiveFile string) error {
 			if err != nil {
 				return err
 			}
-			n, err := io.Copy(wf, tr)
+			tracker.SetSize(fi.Size())
+			n, err := io.Copy(wf, tracker.Proxy(tr))
 			if closeErr := wf.Close(); closeErr != nil && err == nil {
 				err = closeErr
 			}
@@ -186,7 +185,8 @@ func unpackTarGz(targetDir, archiveFile string) error {
 					// on it anywhere (the gomote push command relies
 					// on digests only), so this is a little pointless
 					// for now.
-					fmt.Fprintf(os.Stderr, "Error changing modtime: %s\n", err.Error())
+					// fmt.Fprintf(os.Stderr, "Error changing modtime: %s\n", err.Error())
+					// TODO: show this as warning in the UI
 				}
 			}
 		case mode.IsDir():
@@ -209,7 +209,7 @@ func validRelPath(p string) bool {
 }
 
 // unpackZip is the zip implementation of unpackArchive.
-func unpackZip(targetDir, archiveFile string) error {
+func unpackZip(targetDir, archiveFile string, tracker progress.IOTracker) error {
 	zr, err := zip.OpenReader(archiveFile)
 	if err != nil {
 		return err
@@ -218,9 +218,11 @@ func unpackZip(targetDir, archiveFile string) error {
 
 	for _, f := range zr.File {
 		name := strings.TrimPrefix(f.Name, "go/")
+		tracker.Reset(fmt.Sprintf("Extracting %s ...", name))
 
 		outpath := filepath.Join(targetDir, name)
-		if f.FileInfo().IsDir() {
+		fi := f.FileInfo()
+		if fi.IsDir() {
 			if err := os.MkdirAll(outpath, 0755); err != nil {
 				return err
 			}
@@ -240,7 +242,8 @@ func unpackZip(targetDir, archiveFile string) error {
 		if err != nil {
 			return err
 		}
-		_, err = io.Copy(out, rc)
+		tracker.SetSize(fi.Size())
+		_, err = io.Copy(out, tracker.Proxy(rc))
 		rc.Close()
 		if err != nil {
 			out.Close()
@@ -253,7 +256,7 @@ func unpackZip(targetDir, archiveFile string) error {
 	return nil
 }
 
-func downloadFromURL(dstFile, srcURL string) (err error) {
+func downloadFromURL(dstFile, srcURL string, tracker progress.IOTracker) (err error) {
 	f, err := os.Create(dstFile)
 	if err != nil {
 		return err
@@ -281,15 +284,14 @@ func downloadFromURL(dstFile, srcURL string) (err error) {
 	if res.StatusCode != http.StatusOK {
 		return errors.New(res.Status)
 	}
-	pw := &progressWriter{w: f, total: res.ContentLength, output: os.Stderr}
-	n, err := io.Copy(pw, res.Body)
+	tracker.SetSize(res.ContentLength)
+	n, err := io.Copy(f, tracker.Proxy(res.Body))
 	if err != nil {
 		return err
 	}
 	if res.ContentLength != -1 && res.ContentLength != n {
 		return fmt.Errorf("copied %d bytes; expected %d", n, res.ContentLength)
 	}
-	pw.update() // 100%
 	return f.Close()
 }
 
@@ -321,71 +323,6 @@ func getDownloadURL(version string) string {
 		arch = "armv6l"
 	}
 	return fmt.Sprintf("%s/%s.%s-%s%s", goDownloadBaseURL, version, goos, arch, ext)
-}
-
-type progressWriter struct {
-	w         io.Writer
-	n         int64
-	total     int64
-	last      time.Time
-	formatted bool
-	output    io.Writer
-}
-
-func (p *progressWriter) update() {
-	end := " ..."
-	if p.n == p.total {
-		end = ""
-	}
-	if p.formatted {
-		fmt.Fprintf(p.output, "Downloaded %5.1f%% (%s / %s)%s\n",
-			(100.0*float64(p.n))/float64(p.total),
-			fmtSize(p.n), fmtSize(p.total), end)
-	} else {
-		fmt.Fprintf(p.output, "Downloaded %5.1f%% (%*d / %d bytes)%s\n",
-			(100.0*float64(p.n))/float64(p.total),
-			ndigits(p.total), p.n, p.total, end)
-	}
-}
-
-func ndigits(i int64) int {
-	var n int
-	for ; i != 0; i /= 10 {
-		n++
-	}
-	return n
-}
-
-func fmtSize(size int64) string {
-	const (
-		byte_unit = 1 << (10 * iota)
-		kilobyte_unit
-		megabyte_unit
-	)
-
-	unit := "B"
-	value := float64(size)
-
-	switch {
-	case size >= megabyte_unit:
-		unit = "MB"
-		value = value / megabyte_unit
-	case size >= kilobyte_unit:
-		unit = "KB"
-		value = value / kilobyte_unit
-	}
-	formatted := strings.TrimSuffix(strconv.FormatFloat(value, 'f', 1, 64), ".0")
-	return fmt.Sprintf("%s %s", formatted, unit)
-}
-
-func (p *progressWriter) Write(buf []byte) (n int, err error) {
-	n, err = p.w.Write(buf)
-	p.n += int64(n)
-	if now := time.Now(); now.Unix() != p.last.Unix() {
-		p.update()
-		p.last = now
-	}
-	return
 }
 
 type userAgentTransport struct {
