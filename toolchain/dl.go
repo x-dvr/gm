@@ -35,11 +35,6 @@ func Install(version, destPath string, tracker progress.IOTracker) error {
 		return nil
 	}
 
-	err = os.MkdirAll(destPath, 0755)
-	if err != nil {
-		return fmt.Errorf("create destination directory %s: %w", destPath, err)
-	}
-
 	goURL := getDownloadURL(version)
 	res, err := http.Head(goURL)
 	if err != nil {
@@ -50,6 +45,11 @@ func Install(version, destPath string, tracker progress.IOTracker) error {
 	}
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("server returned %s checking size of %s", http.StatusText(res.StatusCode), goURL)
+	}
+
+	err = os.MkdirAll(destPath, 0755)
+	if err != nil {
+		return fmt.Errorf("create destination directory %s: %w", destPath, err)
 	}
 
 	base := path.Base(goURL)
