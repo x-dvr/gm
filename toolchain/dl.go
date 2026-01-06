@@ -76,11 +76,16 @@ func Install(version, destPath string) error {
 	if err := verifySHA256(archiveFile, expectedSHA); err != nil {
 		return fmt.Errorf("verify SHA256 of %s: %w", archiveFile, err)
 	}
+	markerPath := filepath.Join(destPath, installSuccessMarker)
+	if _, err := os.Stat(markerPath); err == nil {
+		fmt.Printf("Go toolchain version %q is already installed\n", version)
+		return nil
+	}
 	fmt.Printf("Unpacking %s ...\n", archiveFile)
 	if err := unpackArchive(destPath, archiveFile); err != nil {
 		return fmt.Errorf("extract archive %s: %w", archiveFile, err)
 	}
-	if err := os.WriteFile(filepath.Join(destPath, installSuccessMarker), nil, 0644); err != nil {
+	if err := os.WriteFile(markerPath, nil, 0644); err != nil {
 		return err
 	}
 	fmt.Printf("Successfully installed Go toolchain version %q\n", version)
