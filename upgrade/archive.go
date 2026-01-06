@@ -7,12 +7,15 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/x-dvr/gm/progress"
 )
 
-func extractZip(src, dest string) error {
+func extractZip(src, dest string, tracker progress.IOTracker) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
 		return err
@@ -20,6 +23,7 @@ func extractZip(src, dest string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
+		tracker.Reset(fmt.Sprintf("Extracting %s ...", f.Name))
 		fpath := filepath.Join(dest, f.Name)
 
 		if f.FileInfo().IsDir() {
@@ -42,7 +46,8 @@ func extractZip(src, dest string) error {
 			return err
 		}
 
-		_, err = io.Copy(outFile, rc)
+		tracker.SetSize(int64(f.UncompressedSize64))
+		_, err = io.Copy(outFile, tracker.Proxy(rc))
 		outFile.Close()
 		rc.Close()
 
@@ -53,7 +58,7 @@ func extractZip(src, dest string) error {
 	return nil
 }
 
-func extractTarGz(src, dest string) error {
+func extractTarGz(src, dest string, tracker progress.IOTracker) error {
 	f, err := os.Open(src)
 	if err != nil {
 		return err
@@ -76,7 +81,7 @@ func extractTarGz(src, dest string) error {
 		if err != nil {
 			return err
 		}
-
+		tracker.Reset(fmt.Sprintf("Extracting %s ...", header.Name))
 		target := filepath.Join(dest, header.Name)
 
 		switch header.Typeflag {
@@ -92,7 +97,9 @@ func extractTarGz(src, dest string) error {
 			if err != nil {
 				return err
 			}
-			if _, err := io.Copy(outFile, tr); err != nil {
+
+			tracker.SetSize(fi.Size())
+			if _, err := io.Copy(outFile, tracker.Proxy(tr)); err != nil {
 				outFile.Close()
 				return err
 			}

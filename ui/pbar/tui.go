@@ -21,6 +21,8 @@ func New(title string) tui {
 	p := tea.NewProgram(m)
 	t := progress.NewTracker(func(ratio float64) {
 		p.Send(ProgressMsg(ratio))
+	}, func(s string) {
+		p.Send(InfoMsg(s))
 	})
 
 	return tui{program: p, tracker: t}
@@ -42,8 +44,7 @@ func (t tui) SetError(err error) {
 }
 
 func (t tui) SetInfo(info string) {
-	t.program.Send(InfoMsg(info))
-	t.tracker.Reset()
+	t.tracker.Reset(info)
 }
 
 func (t tui) Exit(err error) {

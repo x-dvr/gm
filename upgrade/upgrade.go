@@ -61,6 +61,7 @@ func (a *Asset) Download(tracker progress.IOTracker) (string, error) {
 	}
 	defer f.Close()
 
+	tracker.Reset(fmt.Sprintf("Downloading %s ...", a.URL))
 	res, err := http.Get(a.URL)
 	if err != nil {
 		return "", fmt.Errorf("fetch asset: %w", err)
@@ -109,12 +110,12 @@ func GetUpdate(ctx context.Context) (*Release, error) {
 	return prepare(releases[0]), nil
 }
 
-func Extract(src, dest string) error {
+func Extract(src, dest string, tracker progress.IOTracker) error {
 	switch {
 	case strings.HasSuffix(src, ".zip"):
-		return extractZip(src, dest)
+		return extractZip(src, dest, tracker)
 	case strings.HasSuffix(src, ".tar.gz"):
-		return extractTarGz(src, dest)
+		return extractTarGz(src, dest, tracker)
 	default:
 		return ErrUnsupportedArchive
 	}

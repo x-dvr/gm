@@ -57,7 +57,6 @@ var upgradeCmd = &cobra.Command{
 				return
 			}
 
-			tui.SetInfo(fmt.Sprintf("Downloading %s...", asset.URL))
 			downloadPath, err := asset.Download(tui.GetTracker())
 			if err != nil {
 				tui.Exit(fmt.Errorf("download update archive: %w", err))
@@ -67,18 +66,14 @@ var upgradeCmd = &cobra.Command{
 				tui.Exit(fmt.Errorf("backup old version: %w", err))
 				return
 			}
-
-			tui.SetInfo("Extracting...")
-			if err = upgrade.Extract(downloadPath, installPath); err != nil {
+			if err = upgrade.Extract(downloadPath, installPath, tui.GetTracker()); err != nil {
 				tui.Exit(fmt.Errorf("extract update archive: %w", err))
 				return
 			}
-
 			if err = os.Remove(downloadPath); err != nil {
 				tui.Exit(fmt.Errorf("cleanup: %w", err))
 				return
 			}
-
 			tui.SetInfo("Successfully updated!")
 			tui.Exit(nil)
 		}()
