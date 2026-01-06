@@ -48,8 +48,6 @@ func (Catppuccin) Text() lipgloss.TerminalColor {
 }
 
 func (Catppuccin) Subdued(level byte) lipgloss.TerminalColor {
-	// Catppuccin uses Subtext and Overlay colors for subdued text
-	// Level 1-4: Subtext1, Subtext0, Overlay2, Overlay1
 	switch level {
 	case 1:
 		return lipgloss.AdaptiveColor{Light: latte.Subtext1().Hex, Dark: frappe.Subtext1().Hex}
@@ -69,7 +67,6 @@ func (Catppuccin) Background() lipgloss.TerminalColor {
 }
 
 func (Catppuccin) Surface(level byte) lipgloss.TerminalColor {
-	// Catppuccin uses Mantle, Surface0, Surface1, Surface2 for elevated surfaces
 	switch level {
 	case 1:
 		return lipgloss.AdaptiveColor{Light: latte.Surface0().Hex, Dark: frappe.Surface0().Hex}

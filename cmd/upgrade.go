@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/x-dvr/gm/ui/pbar"
 	"github.com/x-dvr/gm/upgrade"
 )
 
@@ -39,39 +40,50 @@ var upgradeCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		if latest == nil {
-			fmt.Println(sInfo.Render("\nNo updates available"))
+			fmt.Println(sInfo.Render("No updates available"))
 			os.Exit(0)
 		}
 
-		fmt.Println(sText.Padding(0, 2).Render("\nUpdate available:"), sActiveText.Render(latest.Version))
-		asset, err := latest.FindAsset(runtime.GOOS, runtime.GOARCH)
-		if err != nil {
-			if errors.Is(err, upgrade.ErrPlatformNotSupported) {
-				fmt.Println(sError.Render(fmt.Sprintf("Platform %s %s is not supported", runtime.GOOS, runtime.GOARCH)))
+		tui := pbar.New(fmt.Sprintf("Update available: %s", latest.Version))
+
+		go func() {
+			asset, err := latest.FindAsset(runtime.GOOS, runtime.GOARCH)
+			if err != nil {
+				if errors.Is(err, upgrade.ErrPlatformNotSupported) {
+					tui.Exit(fmt.Errorf("platform %s %s is not supported", runtime.GOOS, runtime.GOARCH))
+					return
+				}
+				tui.Exit(fmt.Errorf("find update archive: %w", err))
 				return
 			}
-			printError("Failed to find update files for this system: %s", err)
-			os.Exit(1)
-		}
-		fmt.Println(sText.Padding(0, 2).Render("Downloading", asset.URL))
-		downloadPath, err := asset.Download()
-		if err != nil {
-			printError("Failed to download update: %s", err)
-			os.Exit(1)
-		}
-		if err := os.Rename(exePath, exePath+".bak"); err != nil {
-			printError("Failed to backup current executable: %s", err)
-			os.Exit(1)
-		}
 
-		if err = upgrade.Extract(downloadPath, installPath); err != nil {
-			printError("Failed to extract: %s", err)
-			os.Exit(1)
-		}
-		fmt.Println(sText.Padding(0, 2).Render("Updated"), sActiveText.Render(exePath))
+			tui.SetInfo(fmt.Sprintf("Downloading %s...", asset.URL))
+			downloadPath, err := asset.Download(tui.GetTracker())
+			if err != nil {
+				tui.Exit(fmt.Errorf("download update archive: %w", err))
+				return
+			}
+			if err := os.Rename(exePath, exePath+".bak"); err != nil {
+				tui.Exit(fmt.Errorf("backup old version: %w", err))
+				return
+			}
 
-		if err = os.Remove(downloadPath); err != nil {
-			printError("Failed to cleanup: %s", err)
+			tui.SetInfo("Extracting...")
+			if err = upgrade.Extract(downloadPath, installPath); err != nil {
+				tui.Exit(fmt.Errorf("extract update archive: %w", err))
+				return
+			}
+
+			if err = os.Remove(downloadPath); err != nil {
+				tui.Exit(fmt.Errorf("cleanup: %w", err))
+				return
+			}
+
+			tui.SetInfo("Successfully updated!")
+			tui.Exit(nil)
+		}()
+
+		if err := tui.Run(); err != nil {
 			os.Exit(1)
 		}
 	},

@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v80/github"
+	"github.com/x-dvr/gm/progress"
 	"golang.org/x/mod/semver"
 )
 
@@ -23,6 +24,7 @@ var (
 	ErrNoBuildInfo          = errors.New("build info is not available")
 	ErrPlatformNotSupported = errors.New("platform not supported")
 	ErrUnsupportedArchive   = errors.New("unsupported archive format")
+	ErrUnknownSize          = errors.New("unknown download size")
 )
 
 type Release struct {
@@ -52,7 +54,7 @@ type Asset struct {
 	URL  string
 }
 
-func (a *Asset) Download() (string, error) {
+func (a *Asset) Download(tracker progress.IOTracker) (string, error) {
 	f, err := os.CreateTemp(os.TempDir(), "gm-up-*."+a.Name)
 	if err != nil {
 		return "", fmt.Errorf("create temporary file: %w", err)
@@ -67,12 +69,12 @@ func (a *Asset) Download() (string, error) {
 	if res.StatusCode >= 400 {
 		return "", fmt.Errorf("wrong HTTP response: %s", res.Status)
 	}
-	// size, err := strconv.Atoi(res.Header.Get("Content-Length"))
-	// if err != nil {
-	// 	return "", fmt.Errorf("get download size: %w", err)
-	// }
+	if res.ContentLength == 0 {
+		return "", ErrUnknownSize
+	}
 
-	if _, err := io.Copy(f, res.Body); err != nil {
+	tracker.SetSize(res.ContentLength)
+	if _, err := io.Copy(f, tracker.Proxy(res.Body)); err != nil {
 		return "", fmt.Errorf("download asset: %w", err)
 	}
 
