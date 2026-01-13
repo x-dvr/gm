@@ -57,7 +57,13 @@ var upgradeCmd = &cobra.Command{
 				return
 			}
 
-			downloadPath, err := asset.Download(tui.GetTracker())
+			expectedChecksum, err := latest.GetChecksum(asset.Name)
+			if err != nil && !errors.Is(err, upgrade.ErrChecksumNotFound) {
+				tui.Exit(fmt.Errorf("get checksum: %w", err))
+				return
+			}
+
+			downloadPath, err := asset.Download(tui.GetTracker(), expectedChecksum)
 			if err != nil {
 				tui.Exit(fmt.Errorf("download update archive: %w", err))
 				return
