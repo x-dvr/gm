@@ -24,8 +24,8 @@ func NewTracker(onProgress func(float64), onReset func(string)) *Tracker {
 	}
 }
 
-func (t *Tracker) Proxy(r io.Reader) io.Reader {
-	return io.TeeReader(r, t)
+func (t *Tracker) Writer() io.Writer {
+	return t
 }
 
 func (t *Tracker) Reset(info string) {

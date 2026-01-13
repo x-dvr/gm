@@ -168,7 +168,8 @@ func unpackTarGz(targetDir, archiveFile string, tracker progress.IOTracker) erro
 				return err
 			}
 			tracker.SetSize(fi.Size())
-			n, err := io.Copy(wf, tracker.Proxy(tr))
+			writer := io.MultiWriter(wf, tracker.Writer())
+			n, err := io.Copy(writer, tr)
 			if closeErr := wf.Close(); closeErr != nil && err == nil {
 				err = closeErr
 			}
@@ -243,7 +244,8 @@ func unpackZip(targetDir, archiveFile string, tracker progress.IOTracker) error 
 			return err
 		}
 		tracker.SetSize(fi.Size())
-		_, err = io.Copy(out, tracker.Proxy(rc))
+		writer := io.MultiWriter(out, tracker.Writer())
+		_, err = io.Copy(writer, rc)
 		rc.Close()
 		if err != nil {
 			out.Close()
@@ -285,7 +287,8 @@ func downloadFromURL(dstFile, srcURL string, tracker progress.IOTracker) (err er
 		return errors.New(res.Status)
 	}
 	tracker.SetSize(res.ContentLength)
-	n, err := io.Copy(f, tracker.Proxy(res.Body))
+	writer := io.MultiWriter(f, tracker.Writer())
+	n, err := io.Copy(writer, res.Body)
 	if err != nil {
 		return err
 	}

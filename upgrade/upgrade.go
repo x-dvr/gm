@@ -104,9 +104,9 @@ func (a *Asset) Download(tracker progress.IOTracker, expectedChecksum string) (s
 
 	tracker.SetSize(res.ContentLength)
 	hasher := sha256.New()
-	writer := io.MultiWriter(f, hasher)
+	writer := io.MultiWriter(f, hasher, tracker.Writer())
 
-	if _, err := io.Copy(writer, tracker.Proxy(res.Body)); err != nil {
+	if _, err := io.Copy(writer, res.Body); err != nil {
 		return "", fmt.Errorf("download asset: %w", err)
 	}
 

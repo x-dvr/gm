@@ -8,5 +8,5 @@ import "io"
 type IOTracker interface {
 	Reset(string)
 	SetSize(int64)
-	Proxy(io.Reader) io.Reader
+	Writer() io.Writer
 }

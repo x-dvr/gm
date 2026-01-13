@@ -48,7 +48,8 @@ func extractZip(src, dest string, tracker progress.IOTracker) error {
 		}
 
 		tracker.SetSize(fi.Size())
-		_, err = io.Copy(outFile, tracker.Proxy(rc))
+		writer := io.MultiWriter(outFile, tracker.Writer())
+		_, err = io.Copy(writer, rc)
 		outFile.Close()
 		rc.Close()
 
@@ -100,7 +101,8 @@ func extractTarGz(src, dest string, tracker progress.IOTracker) error {
 			}
 
 			tracker.SetSize(fi.Size())
-			if _, err := io.Copy(outFile, tracker.Proxy(tr)); err != nil {
+			writer := io.MultiWriter(outFile, tracker.Writer())
+			if _, err := io.Copy(writer, tr); err != nil {
 				outFile.Close()
 				return err
 			}
