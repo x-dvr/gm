@@ -10,7 +10,7 @@ require (
 	github.com/google/go-github/v80 v80.0.0
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/mod v0.32.0
-	golang.org/x/sys v0.40.0
+	golang.org/x/sys v0.41.0
 )
 
 require (
